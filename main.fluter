@@ -1,0 +1,71 @@
+import 'package:flutter/material.dart';
+import 'package:stripe_payment/stripe_payment.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    StripePayment.setOptions(
+      StripeOptions(
+        publishableKey: "YOUR_PUBLISHABLE_KEY",
+        merchantId: "YOUR_MERCHANT_ID",
+        androidPayMode: 'test',
+      ),
+    );
+  }
+
+  void createSubscription() async {
+    var response = await http.post(
+      Uri.parse('https://your-server.com/create-subscription'),
+      body: {
+        'email': 'user@example.com',
+        'payment_method': 'pm_card_visa',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      var subscription = jsonDecode(response.body);
+      // Handle subscription success
+      print('Subscription created: ${subscription['id']}');
+    } else {
+      // Handle error
+      print('Failed to create subscription');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Stripe Subscription'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: createSubscription,
+          child: Text('Subscribe Now'),
+        ),
+      ),
+    );
+  }
+}
+
